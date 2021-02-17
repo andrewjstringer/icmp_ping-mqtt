@@ -27,47 +27,46 @@ print("ping to ", config.ipaddress_1)
 hostalive_1 = ping_host(config.ipaddress_1)
 hostalive_2 = ping_host(config.ipaddress_2)
 
+# logic
+# test each host, if either is alive, then internet is ok.
+# if both fail, retest both, if both fail again, then assume internet is down.
 
-
-if hostalive_1.is_alive and hostalive_2.is_alive:
-    print("Both hostalive_1/2 Yes,", hostalive_1.is_alive, hostalive_2.is_alive)
-    # hint - create dictionary for each host and combine as list
-    #message = hostalive_1.address + str(hostalive_1.min_rtt) + hostalive_2.address + str(hostalive_2.min_rtt)
+if hostalive_1.is_alive or hostalive_2.is_alive:
+    print("1st test - Either hostalive_1 or 2 alive, 1:-", hostalive_1.is_alive, "2:-", hostalive_2.is_alive)
     host1 = {hostalive_1.address:{ "is_alive": hostalive_1.is_alive, "rtt": hostalive_1.min_rtt }}
     host2 = {hostalive_2.address:{ "is_alive": hostalive_2.is_alive, "rtt": hostalive_2.min_rtt }}
-    message = ["Internet_Status", host1, host2]
+    teststatus = {"internet_ok":True}
+    message = ["Internet_Status", teststatus, host1, host2]
 
     print(message)
-
+    # publish internet is OK
     publish_to_mqtt(config.publish_topic,  json.dumps(message), 0)
     sys.exit(0)
 else:
-    stuff = True
+    # 2nd test
+    hostalive_retest_1 = ping_host(config.ipaddress_1)
+    hostalive_retest_2 = ping_host(config.ipaddress_2)
 
+    host_retest_1 = {hostalive_retest_1.address: {"is_alive": hostalive_retest_1.is_alive, "rtt": hostalive_retest_1.min_rtt}}
+    host_retest_2 = {hostalive_retest_2.address: {"is_alive": hostalive_retest_2.is_alive, "rtt": hostalive_retest_2.min_rtt}}
 
+    if hostalive_retest_1.is_alive or hostalive_retest_2.is_alive:
+        print("retest - Either hostalive_retest_1 or 2 alive, 1:-", hostalive_retest_1, "2:-", hostalive_retest_2.is_alive)
+        reteststatus = {"internet_ok":True}
+        message_retest = ["Internet_Status", reteststatus, host_retest_1, host_retest_2]
 
+        print(message_retest)
+        # publish internet is OK
+        publish_to_mqtt(config.publish_topic,  json.dumps(message_retest), 0)
+        sys.exit(0)
+    else:
+        print("Failed test and retest")
+        reteststatus = {"internet_ok":False}
+        message_retest = ["Internet_Status", reteststatus, host_retest_1, host_retest_2]
 
-#Internet:
-#  - ip1:
-#      is_alive: True
-#      response_time: 19ms
-#  - ip2:
-#      is_alive: False
-#      response_time:
+        print(message_retest)
+        # publish internet is OK
+        publish_to_mqtt(config.publish_topic,  json.dumps(message_retest), 0)
 
-#if hostalive:   # is True
-#    print("hostalive Yes,", hostalive)
-#    publish_to_mqtt(config.publish_topic,  config.ipaddress_1, 0)
-#    sys.exit(0)
-#else:
-#    print("hostalive No, sleeping for retest", hostalive)
-#    time.sleep(5)
-#     hostalive2 = ping_host(config.ipaddress)
+        sys.exit(1)
 
-#     if hostalive2: # = True
-#         publish_to_mqtt(success 2nd attempt)
-#         return
-#     else
-#         host not reachable
-#         publish_to_mqtt(message)
-#         sys.exit(1)
