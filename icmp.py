@@ -65,7 +65,7 @@ else:
         message_retest = ["Internet_Status", reteststatus, host_retest_1, host_retest_2]
 
         print(message_retest)
-        # publish internet is OK
+        # publish internet is NOT ok
         publish_to_mqtt(config.publish_topic,  json.dumps(message_retest), 0)
 
         sys.exit(1)
