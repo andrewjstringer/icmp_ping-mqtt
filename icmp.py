@@ -66,7 +66,7 @@ else:
         sys.exit(0)
     else:
         # print("Failed test and retest")
-        reteststatus = {"internet_ok":"False"}
+        reteststatus = {"internet_ok":False}
         message_retest = ["Internet_Status", reteststatus, host_retest_1, host_retest_2]
 
         retest_result = json.dumps(message_retest)
